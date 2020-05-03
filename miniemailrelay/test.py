@@ -1,6 +1,10 @@
-from app import *
 import os
 from unittest import TestCase
+
+from .models import Base
+from .operations import registerEmail, generateEmail, enableEmail, listEmail, check_email_exists
+from .settings import SQLITE_STORE, engine
+from .utils import validate_email
 
 test_email = "kesavarapu.siva@gmail.com"
 invalid_email = "haha.com"
