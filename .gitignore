@@ -1,1 +1,22 @@
+
+# project
+test.eml
+test.db
+
+# python cache
 **/__pycache__
+
+# eclipse
+.project
+
+# idea
+.idea/misc.xml
+.idea/modules.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/spam-reducer.iml
+.idea/vcs.xml
+
+# vscode
+.vscode/settings.json
+
+
