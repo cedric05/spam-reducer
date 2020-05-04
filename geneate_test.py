@@ -1,6 +1,6 @@
-from miniemailrelay import operations
-from miniemailrelay.settings import SESSION, ENGINE
-from miniemailrelay.models import Base
+from minirelay import operations
+from minirelay.settings import SESSION, ENGINE
+from minirelay.models import Base
 try:
     Base.metadata.create_all(ENGINE)
 except:

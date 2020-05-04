@@ -1,11 +1,11 @@
 import os
 from unittest import TestCase
 
-from miniemailrelay.settings import  *
-from miniemailrelay.models import Base
-from miniemailrelay.operations import registerEmail, generateEmail, enableEmail, listEmail, check_email_exists
-from miniemailrelay.settings import SQLITE_STORE, ENGINE
-from miniemailrelay.utils import validate_email
+from minirelay.settings import  *
+from minirelay.models import Base
+from minirelay.operations import registerEmail, generateEmail, enableEmail, listEmail, check_email_exists
+from minirelay.settings import SQLITE_STORE, ENGINE
+from minirelay.utils import validate_email
 
 test_email = "test@testdomain.com"
 invalid_email = "haha.com"
