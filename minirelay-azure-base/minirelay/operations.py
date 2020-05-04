@@ -1,4 +1,4 @@
-__all__ = ["registerEmail", "generateEmail", "listEmail", "check_email_exists"]
+__all__ = ["registerEmail", "generateEmail", "listEmail", "check_email_exists", "enableEmail"]
 
 import string
 
@@ -23,7 +23,7 @@ def registerEmail(email_address):
         raise AlreadyRegistered("email already registered")
 
 
-def generateEmail(email_address, extra_or_site=""):
+def generateEmail(email_address, extra_or_site="") -> str:
     check_email_exists(email_address)
     filter = Filters()
     filter.email_addresss = email_address
