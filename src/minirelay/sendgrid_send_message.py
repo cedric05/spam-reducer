@@ -4,9 +4,9 @@ from email.utils import parseaddr
 import sendgrid
 from sendgrid.helpers.mail import Email, Mail
 
-from minirelay.exceptions import SendGridExceptionMini
-from minirelay.operations import get_original_email
-from minirelay.settings import SENDGRID_API_KEY, FROM_EMAIL
+from .exceptions import SendGridExceptionMini
+from .operations import get_original_email
+from .settings import SENDGRID_API_KEY
 
 sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
 
