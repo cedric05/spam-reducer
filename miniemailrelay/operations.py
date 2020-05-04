@@ -1,39 +1,40 @@
+__all__ = ["registerEmail", "generateEmail", "listEmail", "check_email_exists"]
+
 import string
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 
 from .exceptions import InValidEmail, AlreadyRegistered, EmailNotGenerated, NotRegistered
-from .settings import session
 from .models import User, Filters
+from .settings import SESSION
 from .utils import validate_email
 
 
-def registerEmail(email):
-    if not validate_email(email):
+def registerEmail(email_address):
+    if not validate_email(email_address):
         raise InValidEmail("email is not valid")
     try:
         user = User()
-        user.email = email
-        session.add(user)
-        session.commit()
+        user.email_address = email_address
+        SESSION.add(user)
+        SESSION.commit()
     except IntegrityError:
         raise AlreadyRegistered("email already registered")
 
 
-def generateEmail(email, extra_or_site=""):
-    check_email_exists(email)
+def generateEmail(email_address, extra_or_site=""):
+    check_email_exists(email_address)
     filter = Filters()
-    filter.email = email
+    filter.email_addresss = email_address
     filter.site = extra_or_site
-    session.add_all([filter])
-    session.commit()
-    return True
+    SESSION.add_all([filter])
+    SESSION.commit()
+    return filter.generated
 
 
-def enableEmail(email, generated, enable=True):
-    check_email_exists(email)
-    query_result = session.query(Filters).filter(Filters.generated == generated)
+def enableEmail(generated, enable=True):
+    query_result = SESSION.query(Filters).filter(Filters.generated == generated)
     try:
         first = query_result.first()
     except NoResultFound:
@@ -42,14 +43,14 @@ def enableEmail(email, generated, enable=True):
         first.enabled = True
     else:
         first.enabled = False
-    session.commit()
+    SESSION.commit()
 
 
-def listEmail(email: string) -> object:
-    validate_email(email)
-    check_email_exists(email)
-    query_result = session.query(Filters).filter(Filters.email == email)
-    result = {"email": email}
+def listEmail(email_address: string) -> object:
+    validate_email(email_address)
+    check_email_exists(email_address)
+    query_result = SESSION.query(Filters).filter(Filters.email_addresss == email_address)
+    result = {"email": email_address}
     filters = []
     result["filters"] = filters
     try:
@@ -62,9 +63,19 @@ def listEmail(email: string) -> object:
         return result
 
 
-def check_email_exists(email):
-    query_result = session.query(User).filter(User.email == email)
+def check_email_exists(email_address):
+    query_result = SESSION.query(User).filter(User.email_address == email_address)
     try:
         result = query_result.first()
     except NoResultFound:
         raise NotRegistered("email not registered")
+
+
+def get_original_email(generated: str) -> str:
+    query = SESSION.query(Filters).filter(Filters.generated == generated)
+    try:
+        first: Filters = query.first()
+        if first.enabled:
+            return first.email_addresss
+    except NoResultFound:
+        raise EmailNotGenerated("unknown generated email!!")

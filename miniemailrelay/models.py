@@ -15,15 +15,15 @@ def address_default():
 
 class User(Base):
     __tablename__ = "users"
-    email = Column(String(120), unique=True, nullable=False, primary_key=True)
+    email_address = Column(String(120), unique=True, nullable=False, primary_key=True)
 
     def __repr__(self):
-        return '<User %r>' % self.email
+        return '<User %r>' % self.email_address
 
 
 class Filters(Base):
     __tablename__ = "filters"
-    email = Column(String(120), unique=True, nullable=False)
+    email_addresss = Column(String(120), unique=True, nullable=False)
     generated = Column(String(120), unique=True, nullable=False, primary_key=True, default=address_default)
     enabled = Column(Boolean(), unique=True, nullable=False, default=True)
     site = Column(String(120), nullable=True)

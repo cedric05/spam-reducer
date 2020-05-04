@@ -1,12 +1,13 @@
 import os
 from unittest import TestCase
 
-from .models import Base
-from .operations import registerEmail, generateEmail, enableEmail, listEmail, check_email_exists
-from .settings import SQLITE_STORE, engine
-from .utils import validate_email
+from miniemailrelay.settings import  *
+from miniemailrelay.models import Base
+from miniemailrelay.operations import registerEmail, generateEmail, enableEmail, listEmail, check_email_exists
+from miniemailrelay.settings import SQLITE_STORE, ENGINE
+from miniemailrelay.utils import validate_email
 
-test_email = "kesavarapu.siva@gmail.com"
+test_email = "test@testdomain.com"
 invalid_email = "haha.com"
 
 
@@ -14,7 +15,7 @@ class TestSpam(TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        Base.metadata.create_all(engine)
+        Base.metadata.create_all(ENGINE)
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -27,18 +28,18 @@ class TestSpam(TestCase):
     def test_a2_register_emaiL(self):
         registerEmail(test_email)
         try:
-            check_email_exists(email=test_email)
+            check_email_exists(email_address=test_email)
         except:
             self.fail("should not fail")
-        self.assertFalse(check_email_exists(email=test_email + "test"))
+        self.assertFalse(check_email_exists(email_address=test_email + "test"))
 
     def test_a3_generate_email(self):
         generateEmail(test_email, "test usecases")
         list_emails = listEmail(test_email)
         self.generated = list_emails.get("filters")[0]["generated"]
-        enableEmail(test_email, self.generated, False) # disabled
+        enableEmail(self.generated, False) # disabled
         list_emails = listEmail(test_email)
         self.assertFalse(list_emails.get('filters')[0]['enabled'])
-        enableEmail(test_email, self.generated, True)
+        enableEmail(self.generated, True)
         list_emails = listEmail(test_email)
         self.assertTrue(list_emails.get('filters')[0]['enabled'])

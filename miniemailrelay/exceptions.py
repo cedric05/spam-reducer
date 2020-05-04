@@ -1,3 +1,5 @@
+__all__ = ["SpamReducerException", "InValidEmail", "NotRegistered", "AlreadyRegistered", "NotGeneratedEmail", "SQLException", "EmailNotGenerated"]
+
 class SpamReducerException(Exception):
     pass
 
@@ -23,4 +25,7 @@ class SQLException(SpamReducerException):
 
 
 class EmailNotGenerated(SpamReducerException):
+    pass
+
+class SendGridExceptionMini(SpamReducerException):
     pass
