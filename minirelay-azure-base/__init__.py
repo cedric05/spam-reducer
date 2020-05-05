@@ -2,7 +2,7 @@ import logging
 from enum import auto, Enum
 from .minirelay import *
 import azure.functions as func
-
+import json
 
 class Action(Enum):
     REGISTER = "register"
@@ -10,11 +10,16 @@ class Action(Enum):
     ENABLE = "enable"
     DISABLE = "disable"
     INBOUND = "inbound"
+    SETUP = "setup"
 
 
 class ReqParams(object):
     def __init__(self, req: func.HttpRequest):
-        self.action = Action[req.params.get('action').upper()]
+        action = req.params.get('action')
+        if action != None:
+            self.action = Action[action.upper()]
+        else:
+            self.action = None;
         self.email = req.params.get("email")  # register/disable
         self.info = req.params.get("info")  # register
         self.enable = req.params.get("enable")
@@ -28,6 +33,8 @@ class ReqParams(object):
             else:
                 self.enable = None
 
+def setup_db():
+    setup()
 
 def register(req: ReqParams):
     registerEmail(req.email)
@@ -53,10 +60,17 @@ def inbound(req):
 def handle_exception_or_code(e: Exception):
     if not e:
         return 200, "Ok"
+    logging.exception("failed with error")
     if isinstance(e, SpamReducerException):
-        return e.code, e.message
+        return e.code, e.message, e.__class__.__name__
     else:
-        return SpamReducerException.code, SpamReducerException.code
+        return SpamReducerException.code, SpamReducerException.code, "not identified"
+
+class JsonHttpResponse(func.HttpResponse):
+    def __init__(self, body={}, status_code=200, headers={},  *args, **kwargs):
+        body = json.dumps(body)
+        headers["Content-type"] = "application/atom+xml; charset=utf-8"
+        super().__init__(body=body, *args, **kwargs)
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -64,24 +78,26 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     req = ReqParams(req)
     action = req.action
-    try:
-        if action == Action.REGISTER:
-            register(req)
-        elif action == Action.GENERATE:
-            return func.HttpResponse({"success": "ok", "generated": generate(req)}, status_code=200)
-        elif action == Action.ENABLE:
-            enable(req)
-        elif action == Action.DISABLE:
-            disable(req)
-        elif action == Action.INBOUND:
-            inbound(req)
-        return func.HttpResponse({"success": "ok"}, status_code=200)
-    except Exception as err:
-        code, message = handle_exception_or_code(err)
-        return func.HttpResponse({"message": message, "success": False, "error": str(err)}, status_code=code)
+    if action:
+        try:
+            if action == Action.SETUP:
+                setup_db()
+            elif action == Action.REGISTER:
+                register(req)
+            elif action == Action.GENERATE:
+                return JsonHttpResponse({"success": "ok", "generated": generate(req)}, status_code=200)
+            elif action == Action.ENABLE:
+                enable(req)
+            elif action == Action.DISABLE:
+                disable(req)
+            elif action == Action.INBOUND:
+                inbound(req)
+            return JsonHttpResponse({"success": "ok"}, status_code=200)
+        except Exception as err:
+            code, message, error_code = handle_exception_or_code(err)
+            return JsonHttpResponse({"message": message, "error_code":error_code ,"success": False, "error": str(err)}, status_code=code)
 
-    if not action:
-        return func.HttpResponse(
-            "please pass action",
-            status_code=400
-        )
+    return JsonHttpResponse(
+        {"message": "action not available", "success": False},
+        status_code=400
+    )

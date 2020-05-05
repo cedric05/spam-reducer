@@ -1,14 +1,17 @@
-__all__ = ["registerEmail", "generateEmail", "listEmail", "check_email_exists", "enableEmail"]
+__all__ = ["registerEmail", "generateEmail", "listEmail", "check_email_exists", "enableEmail", "setup"]
 
 import string
 
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError, DBAPIError
 from sqlalchemy.orm.exc import NoResultFound
 
-from .exceptions import InValidEmail, AlreadyRegistered, EmailNotGenerated, NotRegistered
-from .models import User, Filters
-from .settings import SESSION
+from .exceptions import InValidEmail, AlreadyRegistered, EmailNotGenerated, NotRegistered, SQLException
+from .models import User, Filters, Base
+from .settings import SESSION, ENGINE
 from .utils import validate_email
+
+def setup():
+    Base.metadata.create_all(ENGINE)
 
 
 def registerEmail(email_address):
@@ -29,8 +32,17 @@ def generateEmail(email_address, extra_or_site="") -> str:
     filter.email_addresss = email_address
     filter.site = extra_or_site
     SESSION.add_all([filter])
-    SESSION.commit()
+    commit()
     return filter.generated
+
+
+def commit():
+    try:
+        SESSION.commit()
+    except (SQLAlchemyError, DBAPIError) as e:
+        raise SQLException(e, "sql exception")
+    finally:
+        SESSION.rollback()
 
 
 def enableEmail(generated, enable=True):

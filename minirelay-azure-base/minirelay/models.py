@@ -25,5 +25,5 @@ class Filters(Base):
     __tablename__ = "filters"
     email_addresss = Column(String(120), unique=True, nullable=False)
     generated = Column(String(120), unique=True, nullable=False, primary_key=True, default=address_default)
-    enabled = Column(Boolean(), unique=True, nullable=False, default=True)
+    enabled = Column(Boolean(), nullable=False, default=True)
     site = Column(String(120), nullable=True)
