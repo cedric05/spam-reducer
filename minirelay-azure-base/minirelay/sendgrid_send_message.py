@@ -17,7 +17,9 @@ def inbound(message: str):
     from_email_with_name: Email = Email(to_email, f"{filter.site} from {sender_email_address} via minirelay")
     mail = Mail(from_email=from_email_with_name, to_emails=filter.email_address, subject=subject)
     for part in body:
-        mail.add_content(part.get_payload(), part.get_content_type())
+        payload_bytes:bytes = part.get_payload(decode=True)
+        payload_string = payload_bytes.decode('utf-8')
+        mail.add_content(payload_string, part.get_content_type())
     try:
         sg.client.mail.send.post(request_body=mail.get())
     except:
