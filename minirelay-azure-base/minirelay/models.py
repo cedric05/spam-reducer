@@ -22,7 +22,7 @@ class Filters(Document):
     email_address = StringField(null=False, required=True)
     generated = StringField(null=False, primary_key=True, default=address_default)
     enabled = BooleanField(null=False, default=True)
-    site = StringField(null=True)
+    site = StringField(null=True, default="")
 
 if __name__ == "__main__":
     print(Filters.objects(email_address="kesavarapu.siva@gmail.com"))
