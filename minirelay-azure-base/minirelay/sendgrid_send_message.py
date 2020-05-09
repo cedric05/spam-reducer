@@ -25,15 +25,7 @@ def inbound(message: str):
 
 
 def parse_email(message):
-    message = """Content-Type: multipart/form-data; boundary=xYzZY
-
-    """ + message;
-    multipart_message = message_from_string(message)
-    for part in multipart_message.get_payload():
-        if "email" in part.values()[0]:
-            email_in_string = part.get_payload()
-            parsed_email = message_from_string(email_in_string)
-            break
+    parsed_email = message_from_string(message)
     body: str = parsed_email.get_payload()
     _display_name, from_email = parseaddr(parsed_email.get("from"))
     _display_name, to_email = parseaddr(parsed_email.get("to"))

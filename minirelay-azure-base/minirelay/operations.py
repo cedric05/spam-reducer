@@ -58,7 +58,7 @@ def enableEmail(generated, enable=True):
     SESSION.commit()
 
 
-def listEmail(email_address: string) -> object:
+def listEmail(email_address: object) -> object:
     validate_email(email_address)
     check_email_exists(email_address)
     query_result = SESSION.query(Filters).filter(Filters.email_addresss == email_address)
@@ -89,5 +89,5 @@ def get_original_email(generated: str) -> str:
         first: Filters = query.first()
         if first.enabled:
             return first.email_addresss
-    except NoResultFound:
-        raise EmailNotGenerated("unknown generated email!!")
+    except (NoResultFound, Exception) as e:
+        raise EmailNotGenerated("unknown generated email!! or not at all registered", e)

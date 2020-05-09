@@ -4,6 +4,7 @@ from .minirelay import *
 import azure.functions as func
 import json
 
+
 class Action(Enum):
     REGISTER = "register"
     GENERATE = "generate"
@@ -11,6 +12,7 @@ class Action(Enum):
     DISABLE = "disable"
     INBOUND = "inbound"
     SETUP = "setup"
+    LIST = "list"
 
 
 class ReqParams(object):
@@ -33,8 +35,10 @@ class ReqParams(object):
             else:
                 self.enable = None
 
+
 def setup_db():
     setup()
+
 
 def register(req: ReqParams):
     registerEmail(req.email)
@@ -52,9 +56,11 @@ def disable(req):
     enableEmail(req.email, False)
 
 
-def inbound(req):
-    pass
-    # inbound_message(req)
+def inbound(reqParams: ReqParams):
+    request = reqParams.request
+    # by default it is paracable 
+    email = reqParams.request.form.get("email")
+    inbound_message(email)
 
 
 def handle_exception_or_code(e: Exception):
@@ -66,11 +72,16 @@ def handle_exception_or_code(e: Exception):
     else:
         return SpamReducerException.code, SpamReducerException.code, "not identified"
 
+
 class JsonHttpResponse(func.HttpResponse):
-    def __init__(self, body={}, status_code=200, headers={},  *args, **kwargs):
+    def __init__(self, body={}, status_code=200, headers={}, *args, **kwargs):
         body = json.dumps(body)
         headers["Content-type"] = "application/atom+xml; charset=utf-8"
         super().__init__(body=body, *args, **kwargs)
+
+
+def list_emails_action(req):
+    return listEmail(req.email)
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
@@ -85,17 +96,20 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             elif action == Action.REGISTER:
                 register(req)
             elif action == Action.GENERATE:
-                return JsonHttpResponse({"success": "ok", "generated": generate(req)}, status_code=200)
+                return JsonHttpResponse({"success": "ok", "response": {"generated": generate(req)}}, status_code=200)
             elif action == Action.ENABLE:
                 enable(req)
             elif action == Action.DISABLE:
                 disable(req)
             elif action == Action.INBOUND:
                 inbound(req)
+            elif action == Action.LIST:
+                return JsonHttpResponse({"success": "ok", "response": list_emails_action(req)}, status_code=200)
             return JsonHttpResponse({"success": "ok"}, status_code=200)
         except Exception as err:
             code, message, error_code = handle_exception_or_code(err)
-            return JsonHttpResponse({"message": message, "error_code":error_code ,"success": False, "error": str(err)}, status_code=code)
+            return JsonHttpResponse({"message": message, "error_code": error_code, "success": False, "error": str(err)},
+                                    status_code=code)
 
     return JsonHttpResponse(
         {"message": "action not available", "success": False},
