@@ -18,10 +18,10 @@ class Action(Enum):
 class ReqParams(object):
     def __init__(self, req: func.HttpRequest):
         action = req.params.get('action')
-        if action != None:
+        try:
             self.action = Action[action.upper()]
-        else:
-            self.action = None;
+        except KeyError:
+            raise NoSuchAction("%s not difined", action )
         self.email = req.params.get("email")  # register/disable
         self.info = req.params.get("info")  # register
         self.enable = req.params.get("enable")

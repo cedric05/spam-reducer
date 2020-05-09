@@ -35,3 +35,7 @@ class EmailNotGenerated(SpamReducerException):
 class SendGridExceptionMini(SpamReducerException):
     message = "sendgrid provider is running into exception"
     code = 425
+
+class NoSuchAction(SpamReducerException):
+    message = "sendgrid provider is running into exception"
+    code = 400

@@ -21,7 +21,7 @@ def registerEmail(email_address):
         user = User()
         user.email_address = email_address
         SESSION.add(user)
-        SESSION.commit()
+        commit();
     except IntegrityError:
         raise AlreadyRegistered("email already registered")
 
@@ -55,7 +55,7 @@ def enableEmail(generated, enable=True):
         first.enabled = True
     else:
         first.enabled = False
-    SESSION.commit()
+    commit()
 
 
 def listEmail(email_address: object) -> object:
