@@ -3,7 +3,7 @@ from email.utils import parseaddr
 
 import sendgrid
 from sendgrid.helpers.mail import Email, Mail
-
+from .models import Filters
 from .exceptions import SendGridExceptionMini
 from .operations import get_original_email
 from .settings import SENDGRID_API_KEY
@@ -13,9 +13,9 @@ sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
 
 def inbound(message: str):
     body, sender_email_address, subject, to_email = parse_email(message)
-    to_email_original_address = get_original_email(to_email)
-    from_email_with_name: Email = Email(to_email, f"from {sender_email_address} via minirelay")
-    mail = Mail(from_email=from_email_with_name, to_emails=to_email_original_address, subject=subject)
+    filter: Filters = get_original_email(to_email)
+    from_email_with_name: Email = Email(to_email, f"{filter.info} from {sender_email_address} via minirelay")
+    mail = Mail(from_email=from_email_with_name, to_emails=filter.email_adto_email_original_addressdress, subject=subject)
     for part in body:
         mail.add_content(part.get_payload(), part.get_content_type())
     try:

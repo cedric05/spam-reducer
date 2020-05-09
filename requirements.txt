@@ -1,4 +1,5 @@
 azure-functions
 python-decouple
-sqlalchemy
 sendgrid
+pymongo
+mongoengine

@@ -1,5 +1,5 @@
 __all__ = ["SpamReducerException", "InValidEmail", "NotRegistered", "AlreadyRegistered",
-           "SQLException", "EmailNotGenerated"]
+           "SQLException", "EmailNotGenerated", "NoSuchAction", "NoActionDefined"]
 
 
 class SpamReducerException(Exception):
@@ -38,4 +38,8 @@ class SendGridExceptionMini(SpamReducerException):
 
 class NoSuchAction(SpamReducerException):
     message = "sendgrid provider is running into exception"
+    code = 400
+
+class NoActionDefined(SpamReducerException):
+    messsage = "No Action defined"
     code = 400

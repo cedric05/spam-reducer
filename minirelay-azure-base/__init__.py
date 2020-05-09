@@ -1,4 +1,5 @@
 import logging
+import os
 from enum import auto, Enum
 from .minirelay import *
 import azure.functions as func
@@ -19,6 +20,8 @@ class ReqParams(object):
     def __init__(self, req: func.HttpRequest):
         action = req.params.get('action')
         try:
+            if action == None:
+                raise NoActionDefined("no action defined, define action")
             self.action = Action[action.upper()]
         except KeyError:
             raise NoSuchAction("%s not difined", action )
@@ -86,9 +89,11 @@ def list_emails_action(req):
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
-
-    req = ReqParams(req)
-    action = req.action
+    try:
+        req = ReqParams(req)
+        action = req.action
+    except Exception as err:
+        return handleError(err)
     if action:
         try:
             if action == Action.SETUP:
@@ -107,11 +112,15 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 return JsonHttpResponse({"success": "ok", "response": list_emails_action(req)}, status_code=200)
             return JsonHttpResponse({"success": "ok"}, status_code=200)
         except Exception as err:
-            code, message, error_code = handle_exception_or_code(err)
-            return JsonHttpResponse({"message": message, "error_code": error_code, "success": False, "error": str(err)},
-                                    status_code=code)
+            return handleError(err)
 
     return JsonHttpResponse(
         {"message": "action not available", "success": False},
         status_code=400
     )
+
+
+def handleError(err):
+    code, message, error_code = handle_exception_or_code(err)
+    return JsonHttpResponse({"message": message, "error_code": error_code, "success": False, "error": str(err)},
+                            status_code=code)

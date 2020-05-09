@@ -3,15 +3,17 @@ __all__ = ["registerEmail", "generateEmail", "listEmail", "check_email_exists", 
 import string
 
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError, DBAPIError
-from sqlalchemy.orm.exc import NoResultFound
-
+from .models import User, Filters
 from .exceptions import InValidEmail, AlreadyRegistered, EmailNotGenerated, NotRegistered, SQLException
-from .models import User, Filters, Base
-from .settings import SESSION, ENGINE
 from .utils import validate_email
+from mongoengine.errors import *
+
+
+
 
 def setup():
-    Base.metadata.create_all(ENGINE)
+    # mongodb takes care of creating table itself
+    pass
 
 
 def registerEmail(email_address):
@@ -19,75 +21,52 @@ def registerEmail(email_address):
         raise InValidEmail("email is not valid")
     try:
         user = User()
-        user.email_address = email_address
-        SESSION.add(user)
-        commit();
-    except IntegrityError:
-        raise AlreadyRegistered("email already registered")
+        user.email_address=email_address
+        user.save(force_insert=True)
+    except NotUniqueError as e:
+        raise AlreadyRegistered("email already registered", e)
 
 
 def generateEmail(email_address, extra_or_site="") -> str:
     check_email_exists(email_address)
     filter = Filters()
-    filter.email_addresss = email_address
+    filter.email_address = email_address
     filter.site = extra_or_site
-    SESSION.add_all([filter])
-    commit()
+    filter.save()
     return filter.generated
 
 
-def commit():
-    try:
-        SESSION.commit()
-    except (SQLAlchemyError, DBAPIError) as e:
-        raise SQLException(e, "sql exception")
-    finally:
-        SESSION.rollback()
-
 
 def enableEmail(generated, enable=True):
-    query_result = SESSION.query(Filters).filter(Filters.generated == generated)
-    try:
-        first = query_result.first()
-    except NoResultFound:
-        raise EmailNotGenerated("email not generated")
-    if enable:
-        first.enabled = True
-    else:
-        first.enabled = False
-    commit()
-
+    Filters.objects(generated=generated).update(enabled=enable)
 
 def listEmail(email_address: object) -> object:
     validate_email(email_address)
     check_email_exists(email_address)
-    query_result = SESSION.query(Filters).filter(Filters.email_addresss == email_address)
+    all_filters = Filters.objects(email_address=email_address)
     result = {"email": email_address}
     filters = []
     result["filters"] = filters
     try:
-        all_filters = query_result.all()
         for filter_data in all_filters:
             filters.append(
                 {"generated": filter_data.generated, "enabled": filter_data.enabled, "site": filter_data.site})
         return result
-    except NoResultFound:
+    except (DoesNotExist, LookUpError):
         return result
 
 
 def check_email_exists(email_address):
-    query_result = SESSION.query(User).filter(User.email_address == email_address)
-    try:
-        result = query_result.first()
-    except NoResultFound:
-        raise NotRegistered("email not registered")
+    query_result = User.objects(email_address = email_address).limit(1)
+    if not query_result:
+        raise NotRegistered(f"email {email_address} not registered ")
 
 
-def get_original_email(generated: str) -> str:
-    query = SESSION.query(Filters).filter(Filters.generated == generated)
+def get_original_email(generated: str):
     try:
-        first: Filters = query.first()
-        if first.enabled:
-            return first.email_addresss
-    except (NoResultFound, Exception) as e:
+        query = Filters.objects(generated=generated).limit(1)
+        if query.enabled:
+            return query
+    except (DoesNotExist, Exception) as e:
         raise EmailNotGenerated("unknown generated email!! or not at all registered", e)
+
