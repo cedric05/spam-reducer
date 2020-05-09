@@ -3,7 +3,7 @@ import string
 from mongoengine import *
 from .settings import *
 
-connect("minirelay", host="mongodb://localhost:27017/minirelay")
+
 
 
 def address_default():

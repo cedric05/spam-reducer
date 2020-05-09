@@ -2,7 +2,6 @@ __all__ = ["registerEmail", "generateEmail", "listEmail", "check_email_exists", 
 
 import string
 
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError, DBAPIError
 from .models import User, Filters
 from .exceptions import InValidEmail, AlreadyRegistered, EmailNotGenerated, NotRegistered, SQLException
 from .utils import validate_email
@@ -63,10 +62,9 @@ def check_email_exists(email_address):
 
 
 def get_original_email(generated: str):
-    try:
-        query = Filters.objects(generated=generated).limit(1)
-        if query.enabled:
-            return query
-    except (DoesNotExist, Exception) as e:
-        raise EmailNotGenerated("unknown generated email!! or not at all registered", e)
+    query = Filters.objects(generated=generated).limit(1)
+    if query and query[0].enabled:
+        return query[0]
+    else:
+        raise EmailNotGenerated("unknown generated email!! or not at all registered")
 

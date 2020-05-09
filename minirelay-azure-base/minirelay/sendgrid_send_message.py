@@ -14,8 +14,8 @@ sg = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
 def inbound(message: str):
     body, sender_email_address, subject, to_email = parse_email(message)
     filter: Filters = get_original_email(to_email)
-    from_email_with_name: Email = Email(to_email, f"{filter.info} from {sender_email_address} via minirelay")
-    mail = Mail(from_email=from_email_with_name, to_emails=filter.email_adto_email_original_addressdress, subject=subject)
+    from_email_with_name: Email = Email(to_email, f"{filter.site} from {sender_email_address} via minirelay")
+    mail = Mail(from_email=from_email_with_name, to_emails=filter.email_address, subject=subject)
     for part in body:
         mail.add_content(part.get_payload(), part.get_content_type())
     try:
