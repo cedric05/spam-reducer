@@ -1,5 +1,5 @@
 __all__ = ["SpamReducerException", "InValidEmail", "NotRegistered", "AlreadyRegistered",
-           "SQLException", "EmailNotGenerated", "NoSuchAction", "NoActionDefined"]
+           "SQLException", "EmailNotGenerated", "NoSuchAction", "NoActionDefined", "DisabledEmail"]
 
 
 class SpamReducerException(Exception):
@@ -43,3 +43,7 @@ class NoSuchAction(SpamReducerException):
 class NoActionDefined(SpamReducerException):
     messsage = "No Action defined"
     code = 400
+
+class DisabledEmail(SpamReducerException):
+    message = "email disabled"
+    code=200

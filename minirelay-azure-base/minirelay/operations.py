@@ -66,5 +66,5 @@ def get_original_email(generated: str):
     if query and query[0].enabled:
         return query[0]
     else:
-        raise EmailNotGenerated("unknown generated email!! or not at all registered")
+        raise DisabledEmail("unknown generated email!! or not at all registered")
 
